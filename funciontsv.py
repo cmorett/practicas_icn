@@ -1,7 +1,8 @@
 import pandas as pd
 import ast
+from pathlib import Path
 
-def listsFromTSV(path="C:\Users\USER\ICN\monitoring_DB.tsv"):
+def listsFromTSV(path=Path("C:/Users/USER/ICN/monitoring_DB.tsv")):
     """
     Returns:
       - listaMCMid: [int, int, ...]
