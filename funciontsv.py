@@ -1,14 +1,21 @@
 import pandas as pd
 import ast
-from pathlib import Path
+import os
+import sys
+from pathlib import Path    
 
-def listsFromTSV(path=Path("C:/Users/USER/ICN/monitoring_DB.tsv")):
+def listsFromTSV(path: str | None = None):
     """
-    Returns:
+    regresa:
       - listaMCMid: [int, int, ...]
       - listaDataOK: [[int, ...], [int, ...], ...]
       - listaGain:   [[float, ...], [float, ...], ...]
     """
+
+    if path is None:
+        # Default to a `monitoring_DB.tsv` file located alongside this script
+        path = os.path.join(os.path.dirname(__file__), "monitoring_DB.tsv")
+
     # Read TSV and normalize header spacing
     df = pd.read_csv(path, sep="\t", dtype=str, keep_default_na=False)
     df = df.rename(columns={c: c.strip() for c in df.columns})
@@ -54,8 +61,10 @@ def listsFromTSV(path=Path("C:/Users/USER/ICN/monitoring_DB.tsv")):
                 vals.append(int(float(x)))
             except Exception:
                 xs = str(x).strip().lower()
-                if xs in {"true", "ok", "yes", "y", "t"}: vals.append(1)
-                elif xs in {"false", "no", "n", "f"}:    vals.append(0)
+                if xs in {"true", "ok", "yes", "y", "t"}: 
+                    vals.append(1)
+                elif xs in {"false", "no", "n", "f"}:    
+                    vals.append(0)
                 # else: ignore
         listaDataOK.append(vals)
 
@@ -70,6 +79,16 @@ def listsFromTSV(path=Path("C:/Users/USER/ICN/monitoring_DB.tsv")):
         listaGain.append(vals)
 
     return listaMCMid, listaDataOK, listaGain
+
+if __name__ == "__main__":
+    # Allow an optional path argument; otherwise use the default.
+    arg_path = sys.argv[1] if len(sys.argv) > 1 else None
+    mcmid, data_ok, gain = listsFromTSV(arg_path)
+
+    print("listaMCMid:", mcmid)
+    print("listaDataOK:", data_ok)
+    print("listaGain:", gain)
+
 
 # Example usage:
 # listaMCMid, listaDataOK, listaGain = listsFromTSV()
