@@ -4,6 +4,17 @@ import ast
 import argparse
 
 
+def resolve(df: pd.DataFrame, name: str) -> str:
+    """
+    Resolve column names in a DataFrame, ignoring case and spacing differences.
+    """
+    key = name.strip().lower().replace(" ", "")
+    for c in df.columns:
+        if c.strip().lower().replace(" ", "") == key:
+            return c
+    raise KeyError(f"Column '{name}' not found. Got: {list(df.columns)}")
+
+
 #Dado un RUNID valido y un MCMID valido, devuelve las listas de Data OK y Gain de ese row
 #Usa "monitoring_DB.tsv" como default
 #Si no encuentra el RUNID o MCMID, devuelve listas vacias
@@ -18,18 +29,10 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     df = pd.read_csv(path, sep="\t", dtype=str, keep_default_na=False)
     df = df.rename(columns={c: c.strip() for c in df.columns})
 
-    # Resolve columns even if spacing/case differ
-    def resolve(name: str) -> str:
-        key = name.strip().lower().replace(" ", "")
-        for c in df.columns:
-            if c.strip().lower().replace(" ", "") == key:
-                return c
-        raise KeyError(f"Column '{name}' not found. Got: {list(df.columns)}")
-
-    run_col = resolve("RUNID")
-    mcm_col = resolve("MCMID")
-    dok_col = resolve("Data OK")
-    gain_col = resolve("Gain")  # 'Gain ' with trailing space is handled
+    run_col = resolve(df, "RUNID")
+    mcm_col = resolve(df, "MCMID")
+    dok_col = resolve(df, "Data OK")
+    gain_col = resolve(df, "Gain")  # 'Gain ' with trailing space is handled
 
     # Optionally filter by RUNID
     if run_ids is not None:
