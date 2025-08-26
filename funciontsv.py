@@ -5,9 +5,7 @@ import argparse
 
 
 def resolve(df: pd.DataFrame, name: str) -> str:
-    """
-    Resolve column names in a DataFrame, ignoring case and spacing differences.
-    """
+    #Resolve column names in a DataFrame, ignoring case and spacing differences.
     key = name.strip().lower().replace(" ", "")
     for c in df.columns:
         if c.strip().lower().replace(" ", "") == key:
@@ -60,32 +58,25 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         .tolist()
     )
 
+    #mete datos a la lista de Data OK
     listaDataOK: list[list[int]] = []
     for cell in df[dok_col].tolist():
         vals: list[int] = []
         for x in (ast.literal_eval(cell) if cell.startswith("[") and cell.endswith("]") else cell.strip("[]").split(",")):
-            try:
-                vals.append(int(float(x)))
-            except Exception:
-                xs = str(x).strip().lower()
-                if xs in {"true", "ok", "yes", "y", "t"}:
-                    vals.append(1)
-                elif xs in {"false", "no", "n", "f"}:
-                    vals.append(0)
+            vals.append(int(float(x)))
         listaDataOK.append(vals)
 
+    #mete datos a la lista de Gain
     listaGain: list[list[float]] = []
     for cell in df[gain_col].tolist():
         vals: list[float] = []
         for x in (ast.literal_eval(cell) if cell.startswith("[") and cell.endswith("]") else cell.strip("[]").split(",")):
-            try:
                 vals.append(float(str(x).replace(",", ".")))
-            except Exception:
-                pass  # ignora no númerico
         listaGain.append(vals)
 
     listaDataOK = [item for sublist in listaDataOK for item in sublist]
 
+    #copia el primer MCMID para que las listas queden del mismo tamaño
     for _ in range(len(listaDataOK)-1):
         listaMCMid.append(listaMCMid[0])
     
@@ -119,7 +110,7 @@ if __name__ == "__main__":
     mcmid, data_ok, gain = listsFromTSV(args.path, args.run_ids, args.mcm_ids)
     
     print(f"Path = {args.path or 'monitoring_DB.tsv'}")
-    print(f"Run IDs = {args.run_ids or 'all'}")
+    print(f"Run IDs = {args.run_ids}")
     print(f"MCM = {mcmid}")
     print(f"Tamaño MCM = {len(mcmid)}")
     print(f"Data OK = {data_ok}")
