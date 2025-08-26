@@ -4,7 +4,7 @@ import sys
 import ast
 
 
-def listsFromTSV(path: str | None = None, run_ids=None):
+def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     """Parse the TSV file and return lists of selected columns.
 
     Parameters
@@ -63,6 +63,14 @@ def listsFromTSV(path: str | None = None, run_ids=None):
             run_ids = {r for r in run_ids}
         run_series = pd.to_numeric(df[run_col].str.strip(), errors="coerce")
         df = df.loc[run_series.isin(run_ids)]
+
+    # Optionally filter by MCMID
+    if mcm_ids is not None:
+        if isinstance(mcm_ids, (int, float, str)):
+            mcm_ids = [mcm_ids]
+        norm_mcm = {str(m).strip() for m in mcm_ids}
+        df = df.loc[df[mcm_col].astype(str).str.strip().isin(norm_mcm)]
+
 
     # Helper to parse a stringified list like "[1, 0, 1, ...]"
     def parse_list(s: str) -> list:
@@ -128,9 +136,15 @@ if __name__ == "__main__":
         type=int,
         help="Optional RUNID values to select",
     )
+
+    parser.add_argument(
+        "--mcm-ids",
+        nargs="*",
+        help="Optional MCMID value to select",
+    )
     args = parser.parse_args()
 
-    mcmid, data_ok, gain = listsFromTSV(args.path, args.run_ids)
+    mcmid, data_ok, gain = listsFromTSV(args.path, args.run_ids, args.mcm_ids)
     print(mcmid)
     print(data_ok)
     print(gain)
