@@ -51,12 +51,14 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         df = df.loc[df[mcm_col].astype(str).str.strip().isin(norm_mcm)]
 
     # Build outputs
-    listaMCMid = (
-        pd.to_numeric(df[mcm_col].str.strip(), errors="coerce")
-        .dropna()
-        .astype(int)
-        .tolist()
-    )
+    def _parse_mcm(x: str):
+        x = str(x).strip()
+        try:
+            return int(float(x))
+        except Exception:
+            return x
+
+    listaMCMid = [_parse_mcm(x) for x in df[mcm_col].tolist()]
 
     #mete datos a la lista de Data OK
     listaDataOK: list[list[int]] = []
@@ -75,12 +77,13 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         listaGain.append(vals)
 
     listaDataOK = [item for sublist in listaDataOK for item in sublist]
+    listaGain = [item for sublist in listaGain for item in sublist]
 
     #copia el primer MCMID para que las listas queden del mismo tamaño
-    for _ in range(len(listaDataOK)-1):
-        listaMCMid.append(listaMCMid[0])
-    
-    listaGain = [item for sublist in listaGain for item in sublist]
+    if listaMCMid:
+        listaMCMid = [listaMCMid[0]] * len(listaDataOK)
+    else:
+        listaMCMid = []
 
     return listaMCMid, listaDataOK, listaGain
     
