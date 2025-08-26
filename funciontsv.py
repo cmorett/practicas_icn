@@ -1,36 +1,12 @@
 from pathlib import Path
 import pandas as pd
-import sys
 import ast
 
-
+#Dado un RUNID valido y un MCMID valido, devuelve las listas de Data OK y Gain de ese row
+#Usa "monitoring_DB.tsv" como default
+#Si no encuentra el RUNID o MCMID, devuelve listas vacias
 def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
-    """Parse the TSV file and return lists of selected columns.
 
-    Parameters
-    ----------
-    path : str | Path | None, optional
-        Path to the TSV file. If ``None`` the file ``monitoring_DB.tsv``
-        located alongside this script is used.
-    run_ids : int | list[int] | None, optional
-        ``RUNID`` or collection of ``RUNID`` values to select. If ``None`` all
-        rows are processed.
-
-    Returns
-    -------
-    tuple[list[int], list[list[int]], list[list[float]]]
-        ``listaMCMid`` – list of MCMID values,
-        ``listaDataOK`` – list of integer lists from the "Data OK" column,
-        ``listaGain`` – list of float lists from the "Gain" column.
-    """
-
-    if path is None:
-        path = Path(__file__).with_name("monitoring_DB.tsv")
-    else:
-        path = Path(path)
-
-
-    # Determine path to TSV file
     if path is None:
         path = Path(__file__).with_name("monitoring_DB.tsv")
     else:
@@ -71,20 +47,6 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         norm_mcm = {str(m).strip() for m in mcm_ids}
         df = df.loc[df[mcm_col].astype(str).str.strip().isin(norm_mcm)]
 
-
-    # Helper to parse a stringified list like "[1, 0, 1, ...]"
-    def parse_list(s: str) -> list:
-        s = (s or "").strip()
-        if s.startswith("[") and s.endswith("]"):
-            try:
-                v = ast.literal_eval(s)
-                if isinstance(v, (list, tuple)):
-                    return list(v)
-            except Exception:
-                pass
-        # Fallback splitter
-        return [x.strip() for x in s.strip("[]").split(",") if x.strip()]
-
     # Build outputs
     listaMCMid = (
         pd.to_numeric(df[mcm_col].str.strip(), errors="coerce")
@@ -96,7 +58,7 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     listaDataOK: list[list[int]] = []
     for cell in df[dok_col].tolist():
         vals: list[int] = []
-        for x in parse_list(cell):
+        for x in (ast.literal_eval(cell) if cell.startswith("[") and cell.endswith("]") else cell.strip("[]").split(",")):
             try:
                 vals.append(int(float(x)))
             except Exception:
@@ -105,13 +67,12 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
                     vals.append(1)
                 elif xs in {"false", "no", "n", "f"}:
                     vals.append(0)
-                # else: ignore
         listaDataOK.append(vals)
 
     listaGain: list[list[float]] = []
     for cell in df[gain_col].tolist():
         vals: list[float] = []
-        for x in parse_list(cell):
+        for x in (ast.literal_eval(cell) if cell.startswith("[") and cell.endswith("]") else cell.strip("[]").split(",")):
             try:
                 vals.append(float(str(x).replace(",", ".")))
             except Exception:
@@ -124,7 +85,7 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Read monitoring TSV data")
+    parser = argparse.ArgumentParser(description="Lee el TSV de monitoreo y devuelve listas")
     parser.add_argument(
         "path",
         nargs="?",
