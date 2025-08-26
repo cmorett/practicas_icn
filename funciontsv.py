@@ -1,16 +1,17 @@
+from pathlib import Path
 import pandas as pd
 import sys
 import ast
 
 
-def listsFromTSV(path="C:\Users\cmore\icn\practicas_icn\monitoring_DB.tsv", run_ids=None):
+def listsFromTSV(path: str | None = None, run_ids=None):
     """Parse the TSV file and return lists of selected columns.
 
     Parameters
     ----------
-    path : str, optional
-        Path to the TSV file. Defaults to the original location used by the
-        script.
+    path : str | Path | None, optional
+        Path to the TSV file. If ``None`` the file ``monitoring_DB.tsv``
+        located alongside this script is used.
     run_ids : int | list[int] | None, optional
         ``RUNID`` or collection of ``RUNID`` values to select. If ``None`` all
         rows are processed.
@@ -22,6 +23,18 @@ def listsFromTSV(path="C:\Users\cmore\icn\practicas_icn\monitoring_DB.tsv", run_
         ``listaDataOK`` – list of integer lists from the "Data OK" column,
         ``listaGain`` – list of float lists from the "Gain" column.
     """
+
+    if path is None:
+        path = Path(__file__).with_name("monitoring_DB.tsv")
+    else:
+        path = Path(path)
+
+
+    # Determine path to TSV file
+    if path is None:
+        path = Path(__file__).with_name("monitoring_DB.tsv")
+    else:
+        path = Path(path)
 
     # Read TSV and normalize header spacing
     df = pd.read_csv(path, sep="\t", dtype=str, keep_default_na=False)
@@ -98,20 +111,27 @@ def listsFromTSV(path="C:\Users\cmore\icn\practicas_icn\monitoring_DB.tsv", run_
         listaGain.append(vals)
 
     return listaMCMid, listaDataOK, listaGain
-
+    
 
 if __name__ == "__main__":
-    arg_path = sys.argv[1] if len(sys.argv) > 1 else None
-    mcmid, data_ok, gain = listsFromTSV(arg_path,49)
+    import argparse
 
-    print("listaMCMid:", mcmid)
-    print("listaDataOK:", data_ok)
-    print("listaGain:", gain)
+    parser = argparse.ArgumentParser(description="Read monitoring TSV data")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        help="Path to TSV file (defaults to monitoring_DB.tsv next to the script)",
+    )
+    parser.add_argument(
+        "--run-ids",
+        nargs="*",
+        type=int,
+        help="Optional RUNID values to select",
+    )
+    args = parser.parse_args()
 
-
-# Example usage:
-# listaMCMid, listaDataOK, listaGain = listsFromTSV(run_ids=211)
-# mcmid_first_row = listaMCMid[0]
-# dataok_first_row = listaDataOK[0]
-# gain_first_row = listaGain[0]
+    mcmid, data_ok, gain = listsFromTSV(args.path, args.run_ids)
+    print(mcmid)
+    print(data_ok)
+    print(gain)
 
