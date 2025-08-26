@@ -78,7 +78,7 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
 
     #copia el primer MCMID para que las listas queden del mismo tamaño
     for _ in range(len(listaDataOK)-1):
-        listaMCMid.append(listaMCMid[0])
+        listaMCMid.append(str(listaMCMid[0]))
     
     listaGain = [item for sublist in listaGain for item in sublist]
 
