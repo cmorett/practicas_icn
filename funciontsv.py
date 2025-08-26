@@ -145,7 +145,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     mcmid, data_ok, gain = listsFromTSV(args.path, args.run_ids, args.mcm_ids)
-    print(mcmid)
-    print(data_ok)
-    print(gain)
+    
+    print(f"Path = {args.path or 'monitoring_DB.tsv'}")
+    print(f"Run IDs = {args.run_ids or 'all'}")
+    print(f"MCM = {mcmid}")
+    print(f"Data OK = {data_ok}")
+    print(f"Gain = {gain}")
 
