@@ -12,7 +12,6 @@ def resolve(df: pd.DataFrame, name: str) -> str:
             return c
     raise KeyError(f"Column '{name}' not found. Got: {list(df.columns)}")
 
-
 #Dado un RUNID valido y un MCMID valido, devuelve las listas de Data OK y Gain de ese row
 #Usa "monitoring_DB.tsv" como default
 #Si no encuentra el RUNID o MCMID, devuelve listas vacias
@@ -51,12 +50,14 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         df = df.loc[df[mcm_col].astype(str).str.strip().isin(norm_mcm)]
 
     # Build outputs
-    listaMCMid = (
-        pd.to_numeric(df[mcm_col].str.strip(), errors="coerce")
-        .dropna()
-        .astype(int)
-        .tolist()
-    )
+    def _parse_mcm(x: str):
+        x = str(x).strip()
+        try:
+            return int(float(x))
+        except Exception:
+            return x
+
+    listaMCMid = [_parse_mcm(x) for x in df[mcm_col].tolist()]
 
     #mete datos a la lista de Data OK
     listaDataOK: list[list[int]] = []
@@ -75,12 +76,13 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         listaGain.append(vals)
 
     listaDataOK = [item for sublist in listaDataOK for item in sublist]
+    listaGain = [item for sublist in listaGain for item in sublist]
 
     #copia el primer MCMID para que las listas queden del mismo tamaño
-    for _ in range(len(listaDataOK)-1):
-        listaMCMid.append(str(listaMCMid[0]))
-    
-    listaGain = [item for sublist in listaGain for item in sublist]
+    if listaMCMid:
+        listaMCMid = [listaMCMid[0]] * len(listaDataOK)
+    else:
+        listaMCMid = []
 
     return listaMCMid, listaDataOK, listaGain
     
@@ -91,19 +93,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "path",
         nargs="?",
-        help="Path to TSV file (defaults to monitoring_DB.tsv next to the script)",
+        help="el path al TSV (default: monitoring_DB.tsv)",
     )
     parser.add_argument(
         "--run-ids",
         nargs="*",
         type=int,
-        help="Optional RUNID values to select",
     )
 
     parser.add_argument(
         "--mcm-ids",
         nargs="*",
-        help="Optional MCMID value to select",
     )
     args = parser.parse_args()
 
