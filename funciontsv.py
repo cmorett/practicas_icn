@@ -79,6 +79,15 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
                 pass  # ignore non-numerics
         listaGain.append(vals)
 
+    # Flatten listaDataOK
+    listaDataOK = [item for sublist in listaDataOK for item in sublist]
+
+    for _ in range(len(listaDataOK)-1):
+        listaMCMid.append(listaMCMid[0])
+    
+    # Flatten listaGain
+    listaGain = [item for sublist in listaGain for item in sublist]
+
     return listaMCMid, listaDataOK, listaGain
     
 
@@ -110,6 +119,8 @@ if __name__ == "__main__":
     print(f"Path = {args.path or 'monitoring_DB.tsv'}")
     print(f"Run IDs = {args.run_ids or 'all'}")
     print(f"MCM = {mcmid}")
+    print(f"Tamaño MCM = {len(mcmid)}")
     print(f"Data OK = {data_ok}")
+    print(f"Tamaño Data OK = {len(data_ok)}")
     print(f"Gain = {gain}")
 
