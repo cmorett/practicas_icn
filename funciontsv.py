@@ -1,8 +1,9 @@
 import pandas as pd
+import sys
 import ast
 
 
-def listsFromTSV(path="C:\\Users\\USER\\ICN\\monitoring_DB.tsv", run_ids=None):
+def listsFromTSV(path="C:\Users\cmore\icn\practicas_icn\monitoring_DB.tsv", run_ids=None):
     """Parse the TSV file and return lists of selected columns.
 
     Parameters
@@ -97,6 +98,15 @@ def listsFromTSV(path="C:\\Users\\USER\\ICN\\monitoring_DB.tsv", run_ids=None):
         listaGain.append(vals)
 
     return listaMCMid, listaDataOK, listaGain
+
+
+if __name__ == "__main__":
+    arg_path = sys.argv[1] if len(sys.argv) > 1 else None
+    mcmid, data_ok, gain = listsFromTSV(arg_path,49)
+
+    print("listaMCMid:", mcmid)
+    print("listaDataOK:", data_ok)
+    print("listaGain:", gain)
 
 
 # Example usage:
