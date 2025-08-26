@@ -1,6 +1,8 @@
 from pathlib import Path
 import pandas as pd
 import ast
+import argparse
+
 
 #Dado un RUNID valido y un MCMID valido, devuelve las listas de Data OK y Gain de ese row
 #Usa "monitoring_DB.tsv" como default
@@ -48,14 +50,12 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         df = df.loc[df[mcm_col].astype(str).str.strip().isin(norm_mcm)]
 
     # Build outputs
-    # Keep alphanumeric MCMIDs instead of dropping non-numeric values
-    listaMCMid = []
-    for val in df[mcm_col].astype(str).str.strip():
-        try:
-            listaMCMid.append(int(val))
-        except ValueError:
-            if val:
-                listaMCMid.append(val)
+    listaMCMid = (
+        pd.to_numeric(df[mcm_col].str.strip(), errors="coerce")
+        .dropna()
+        .astype(int)
+        .tolist()
+    )
 
     listaDataOK: list[list[int]] = []
     for cell in df[dok_col].tolist():
@@ -84,8 +84,8 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     # Flatten listaDataOK
     listaDataOK = [item for sublist in listaDataOK for item in sublist]
 
-    if listaMCMid and len(listaMCMid) == 1:
-        listaMCMid = [listaMCMid[0]] * len(listaDataOK)
+    for _ in range(len(listaDataOK)-1):
+        listaMCMid.append(listaMCMid[0])
     
     # Flatten listaGain
     listaGain = [item for sublist in listaGain for item in sublist]
@@ -94,7 +94,6 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     
 
 if __name__ == "__main__":
-    import argparse
 
     parser = argparse.ArgumentParser(description="Lee el TSV de monitoreo y devuelve listas")
     parser.add_argument(
