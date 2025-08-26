@@ -32,9 +32,9 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
     run_col = resolve(df, "RUNID")
     mcm_col = resolve(df, "MCMID")
     dok_col = resolve(df, "Data OK")
-    gain_col = resolve(df, "Gain")  # 'Gain ' with trailing space is handled
+    gain_col = resolve(df, "Gain") 
 
-    # Optionally filter by RUNID
+    # Filtra por RUNID 
     if run_ids is not None:
         if isinstance(run_ids, (int, float, str)):
             run_ids = [run_ids]
@@ -45,7 +45,7 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
         run_series = pd.to_numeric(df[run_col].str.strip(), errors="coerce")
         df = df.loc[run_series.isin(run_ids)]
 
-    # Optionally filter by MCMID
+    # Filtra por MCMID
     if mcm_ids is not None:
         if isinstance(mcm_ids, (int, float, str)):
             mcm_ids = [mcm_ids]
@@ -81,16 +81,14 @@ def listsFromTSV(path: str | None = None, run_ids=None, mcm_ids=None):
             try:
                 vals.append(float(str(x).replace(",", ".")))
             except Exception:
-                pass  # ignore non-numerics
+                pass  # ignora no númerico
         listaGain.append(vals)
 
-    # Flatten listaDataOK
     listaDataOK = [item for sublist in listaDataOK for item in sublist]
 
     for _ in range(len(listaDataOK)-1):
         listaMCMid.append(listaMCMid[0])
     
-    # Flatten listaGain
     listaGain = [item for sublist in listaGain for item in sublist]
 
     return listaMCMid, listaDataOK, listaGain
